@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 import httpx
+import pytest_asyncio
 
 # Ensure the backend source directory is importable regardless of invocation path
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,7 +20,7 @@ def reset_db():
     db.reset()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client():
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
