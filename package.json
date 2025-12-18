@@ -1,0 +1,9 @@
+{
+  "name": "ai-devtools-snake",
+  "version": "1.0.0",
+  "description": "Snake game mock frontend with auth, leaderboard, and live watching.",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/runTests.js"
+  }
+}

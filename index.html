@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Arena</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">SA</span>
+      <div>
+        <div class="title">Snake Arena</div>
+        <div class="subtitle">Mock multiplayer playground</div>
+      </div>
+    </div>
+    <div id="auth-status" class="auth-status">
+      <div class="auth-forms">
+        <form id="login-form" class="auth-form">
+          <input type="text" name="username" placeholder="Username" required>
+          <input type="password" name="password" placeholder="Password" required>
+          <button type="submit">Log in</button>
+        </form>
+        <form id="signup-form" class="auth-form">
+          <input type="text" name="username" placeholder="New username" required>
+          <input type="password" name="password" placeholder="New password" required>
+          <button type="submit">Sign up</button>
+        </form>
+      </div>
+      <div id="user-info" class="user-info hidden">
+        <div class="user-chip">
+          <span id="current-user"></span>
+        </div>
+        <button id="logout-btn" class="ghost">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <header class="panel-head">
+        <div>
+          <div class="eyebrow">Game</div>
+          <h2>Play snake</h2>
+        </div>
+        <div class="mode-switch">
+          <label><input type="radio" name="mode" value="pass-through" checked> Pass-through</label>
+          <label><input type="radio" name="mode" value="walls"> Walls</label>
+        </div>
+      </header>
+      <div class="controls">
+        <button id="start-btn">Start</button>
+        <button id="pause-btn" class="ghost">Pause</button>
+        <span class="status-label">Score: <span id="score">0</span></span>
+        <span class="status-label">Mode: <span id="mode-label">Pass-through</span></span>
+      </div>
+      <canvas id="game-canvas" width="360" height="360"></canvas>
+      <p class="hint">Use arrow keys or WASD. Pass-through mode wraps edges; wall mode ends on collision.</p>
+    </section>
+
+    <section class="panel">
+      <header class="panel-head">
+        <div>
+          <div class="eyebrow">Competitive</div>
+          <h2>Leaderboard</h2>
+        </div>
+        <button id="refresh-leaderboard" class="ghost">Refresh</button>
+      </header>
+      <ul id="leaderboard" class="leaderboard"></ul>
+      <div class="panel-foot">
+        <div class="eyebrow">Live rooms</div>
+        <h3>Watch others play</h3>
+      </div>
+      <div id="watch-area" class="watch-area">
+        <div class="watch-info">
+          <div id="watch-player" class="watch-player">Player: -</div>
+          <div id="watch-mode" class="watch-mode">Mode: -</div>
+        </div>
+        <canvas id="watch-canvas" width="240" height="240"></canvas>
+        <div class="watch-controls">
+          <button id="switch-stream" class="ghost">Next player</button>
+          <span id="watch-status" class="status-label">No stream</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
