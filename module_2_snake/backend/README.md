@@ -14,6 +14,12 @@ Run the server (defaults to port 8000):
 uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
+### Database
+
+- Uses SQLAlchemy; defaults to SQLite at `./app.db`.
+- Override with `DB_URL`, e.g. `DB_URL=postgresql+psycopg://user:pass@localhost:5432/snake`.
+- Schema is created and seeded automatically on startup (matches/frames).
+
 ## API Docs
 
 - OpenAPI spec: `openapi.yaml`

@@ -1,10 +1,12 @@
 import asyncio
 import json
+from pathlib import Path
 from typing import List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 from db import db
 from models import (
@@ -32,6 +34,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve frontend static files (built or raw) from /frontend inside the container.
+frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+if frontend_dir.exists():
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="static")
 
 
 def parse_bearer_token(authorization: Optional[str]) -> Optional[str]:
@@ -111,7 +118,7 @@ def submit_score(payload: SubmitScoreRequest, username: Optional[str] = Depends(
 
 @app.get("/watch/matches", response_model=List[MatchSummary])
 def list_matches() -> List[MatchSummary]:
-    return db.matches
+    return db.list_matches()
 
 
 async def _frame_stream(match_id: str):

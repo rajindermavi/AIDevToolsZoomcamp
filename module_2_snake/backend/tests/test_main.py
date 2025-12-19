@@ -1,8 +1,9 @@
 import sys
+from importlib import reload
 from pathlib import Path
 
-import pytest
 import httpx
+import pytest
 import pytest_asyncio
 
 # Ensure the backend source directory is importable regardless of invocation path
@@ -10,8 +11,15 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from main import app
-from db import db
+import db as db_module
+
+# Use an in-memory SQLite database for fast, isolated tests and reload the app to pick it up.
+db_module.init_db("sqlite:///:memory:")
+import main as main_module
+
+reload(main_module)
+app = main_module.app
+db = main_module.db
 
 
 @pytest.fixture(autouse=True)
