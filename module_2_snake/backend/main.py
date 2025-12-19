@@ -3,6 +3,7 @@ import json
 from typing import List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Response, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from db import db
@@ -21,6 +22,15 @@ app = FastAPI(
     title="Snake Arcade API",
     version="1.0.0",
     description="API backing the Snake web client. Supports user authentication, leaderboard submissions, and live match watching.",
+)
+
+# Allow local frontend (and other dev clients) to call the API from another origin/port.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
