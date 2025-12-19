@@ -106,7 +106,11 @@ function stopLoop() {
 
 async function handleGameOver(finalState) {
   stopLoop();
-  await submitScore(authToken, finalState.score);
+  try {
+    await submitScore(authToken, finalState.score);
+  } catch (err) {
+    console.error("Failed to submit score", err);
+  }
   refreshLeaderboard();
 }
 
@@ -140,13 +144,19 @@ function togglePause() {
 }
 
 async function refreshLeaderboard() {
-  const entries = await fetchLeaderboard();
   leaderboardEl.innerHTML = "";
-  entries.forEach((entry, idx) => {
+  try {
+    const entries = await fetchLeaderboard();
+    entries.forEach((entry, idx) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span>#${idx + 1} ${entry.username}</span><span>${entry.score}</span>`;
+      leaderboardEl.appendChild(li);
+    });
+  } catch (err) {
     const li = document.createElement("li");
-    li.innerHTML = `<span>#${idx + 1} ${entry.username}</span><span>${entry.score}</span>`;
+    li.textContent = `Leaderboard unavailable: ${err.message}`;
     leaderboardEl.appendChild(li);
-  });
+  }
 }
 
 function setupAuthForms() {
@@ -208,12 +218,28 @@ function drawWatchFrame(frame) {
 function startStream(index) {
   if (activeStream?.stop) activeStream.stop();
   const match = liveMatches[index % liveMatches.length];
-  if (!match) return;
-  activeStream = streamMatch(match.id, drawWatchFrame);
+  if (!match) {
+    watchStatusEl.textContent = "No live matches";
+    return;
+  }
+  watchStatusEl.textContent = "Connecting...";
+  activeStream = streamMatch(match.id, (frame) => {
+    drawWatchFrame(frame);
+    watchStatusEl.textContent = `Score: ${frame.score}`;
+  });
 }
 
-function setupWatching() {
-  liveMatches = listLiveMatches();
+async function setupWatching() {
+  try {
+    liveMatches = await listLiveMatches();
+  } catch (err) {
+    watchStatusEl.textContent = `Live feed unavailable: ${err.message}`;
+    return;
+  }
+  if (!liveMatches.length) {
+    watchStatusEl.textContent = "No live matches";
+    return;
+  }
   liveIndex = 0;
   startStream(liveIndex);
   document.getElementById("switch-stream").addEventListener("click", () => {
@@ -234,11 +260,10 @@ function setupControls() {
   });
 }
 
-function init() {
+async function init() {
   setupAuthForms();
   setupControls();
-  setupWatching();
-  refreshLeaderboard();
+  await Promise.all([setupWatching(), refreshLeaderboard()]);
 }
 
 init();
