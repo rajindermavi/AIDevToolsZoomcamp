@@ -107,3 +107,13 @@ Build an initial baseline version of a collaborative coding interview web app.
     - Backend test files with clear organization.
     - Frontend test files colocated with components or in a test directory.
     - Instructions for running tests locally - written to README.md
+
+## Enhancement: Syntax Highlighting
+
+**Syntax Highlighting Enhancement**
+
+* The code editor should dynamically update syntax highlighting based on the selected language.
+* Language switching should not reset or overwrite existing code.
+* Use CodeMirror language extensions for Python and JavaScript.
+* Apply a consistent editor theme for readability.
+* Keep editor configuration separate from execution logic.

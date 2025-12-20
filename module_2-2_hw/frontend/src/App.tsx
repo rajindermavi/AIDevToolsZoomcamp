@@ -1,12 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
-import { javascript } from "@codemirror/lang-javascript";
-import { python } from "@codemirror/lang-python";
+import { getExtensions, Language } from "./editorConfig";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
-
-type Language = "python" | "javascript";
 
 type RunResult = {
   stdout: string;
@@ -211,9 +208,7 @@ function App() {
     setCode("# Session ended\n");
   };
 
-  const extensions = useMemo(() => {
-    return language === "python" ? [python()] : [javascript({ jsx: true, typescript: true })];
-  }, [language]);
+  const extensions = useMemo(() => getExtensions(language), [language]);
 
   return (
     <div className="card">
