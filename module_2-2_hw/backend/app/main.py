@@ -4,7 +4,7 @@ import json
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
+from typing import AsyncIterator, Dict, List, Optional, Set
 
 from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -103,27 +103,26 @@ async def get_store() -> SessionStore:
     return app.state.session_store
 
 
-app = FastAPI()
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    app.state.session_store = SessionStore()
+    app.state.cleanup_task = asyncio.create_task(app.state.session_store.expire_inactive_sessions())
+    try:
+        yield
+    finally:
+        cleanup: asyncio.Task = app.state.cleanup_task
+        cleanup.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await cleanup
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-async def startup_event() -> None:
-    app.state.session_store = SessionStore()
-    app.state.cleanup_task = asyncio.create_task(app.state.session_store.expire_inactive_sessions())
-
-
-@app.on_event("shutdown")
-async def shutdown_event() -> None:
-    cleanup: asyncio.Task = app.state.cleanup_task
-    cleanup.cancel()
-    with contextlib.suppress(asyncio.CancelledError):
-        await cleanup
 
 
 @app.post("/sessions", response_model=SessionCreateResponse)
