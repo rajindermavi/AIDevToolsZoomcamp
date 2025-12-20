@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { getExtensions, Language } from "./editorConfig";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
+import { API_URL, WS_URL } from "./config";
 
 type RunResult = {
   stdout: string;
