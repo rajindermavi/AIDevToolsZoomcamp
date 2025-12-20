@@ -1,0 +1,11 @@
+{
+  "name": "collab-interview-dev",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "concurrently \"cd backend && uv run uvicorn app.main:app --reload --port 8000\" \"cd frontend && npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
