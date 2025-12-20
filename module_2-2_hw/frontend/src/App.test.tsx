@@ -6,15 +6,18 @@ type MockMessageEvent = { data: string };
 
 class MockWebSocket {
   url: string;
-  onopen: (() => void) | null = null;
+  protocols?: string | string[];
+  readyState = 1; // OPEN
+  onopen: ((event: Event) => void) | null = null;
   onmessage: ((event: MockMessageEvent) => void) | null = null;
-  onclose: (() => void) | null = null;
+  onclose: ((event: CloseEvent) => void) | null = null;
   send = jest.fn();
   close = jest.fn();
 
-  constructor(url: string) {
+  constructor(url: string, protocols?: string | string[]) {
     this.url = url;
-    setTimeout(() => this.onopen && this.onopen(), 0);
+    this.protocols = protocols;
+    setTimeout(() => this.onopen?.(new Event("open")), 0);
     sockets.push(this);
   }
 }
@@ -23,15 +26,19 @@ let sockets: MockWebSocket[] = [];
 
 beforeEach(() => {
   sockets = [];
-  global.WebSocket = MockWebSocket as any;
-  global.fetch = jest.fn().mockResolvedValue({
+  const mockFetch = jest.fn().mockResolvedValue({
     ok: true,
     json: async () => ({ session_id: "abc123", language: "python", code: "" }),
-  }) as any;
+  });
+  // Casting through unknown to satisfy the DOM globals in jsdom
+  (global as unknown as { WebSocket: typeof WebSocket }).WebSocket =
+    MockWebSocket as unknown as typeof WebSocket;
+  (global as unknown as { fetch: typeof fetch }).fetch = mockFetch as unknown as typeof fetch;
 });
 
 afterEach(() => {
   jest.restoreAllMocks();
+  jest.clearAllMocks();
 });
 
 test("renders app without crashing", () => {
@@ -47,7 +54,9 @@ test("code editor renders", () => {
 test("start session triggers API call", async () => {
   render(<App />);
   fireEvent.click(screen.getByText(/Start Session/i));
-  await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(expect.stringMatching(/sessions$/), expect.any(Object)));
+  await waitFor(() =>
+    expect((global as any).fetch).toHaveBeenCalledWith(expect.stringMatching(/sessions$/), expect.any(Object)),
+  );
   expect(sockets.length).toBeGreaterThan(0);
 });
 
@@ -62,8 +71,8 @@ test("run code sends run message over WebSocket", async () => {
   render(<App />);
   // start session to open socket
   fireEvent.click(screen.getByText(/Start Session/i));
-  await waitFor(() => sockets[0]?.onopen);
-  sockets[0]?.onopen && sockets[0].onopen();
+  await waitFor(() => expect(sockets[0]).toBeDefined());
+  sockets[0]?.onopen && sockets[0].onopen(new Event("open"));
   const runBtn = await screen.findByText(/Run Code/i);
   await userEvent.click(runBtn);
   expect(sockets[0].send).toHaveBeenCalledWith(JSON.stringify({ type: "run" }));
@@ -72,12 +81,11 @@ test("run code sends run message over WebSocket", async () => {
 test("output panel shows execution result", async () => {
   render(<App />);
   fireEvent.click(screen.getByText(/Start Session/i));
-  await waitFor(() => sockets[0]);
-  const socket = sockets[0];
-  socket.onmessage &&
-    socket.onmessage({
-      data: JSON.stringify({ type: "run_result", stdout: "hello", stderr: "" }),
-    });
+  await waitFor(() => expect(sockets[0]).toBeDefined());
+  const socket = sockets[0]!;
+  socket.onmessage?.({
+    data: JSON.stringify({ type: "run_result", stdout: "hello", stderr: "" }),
+  });
   expect(await screen.findByText(/stdout/i)).toBeInTheDocument();
   expect(screen.getByText(/hello/)).toBeInTheDocument();
 });
