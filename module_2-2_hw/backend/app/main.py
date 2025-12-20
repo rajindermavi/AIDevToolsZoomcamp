@@ -80,22 +80,23 @@ class SessionStore:
             except Exception:
                 continue
 
+    async def expire_stale_once(self) -> List[str]:
+        now = time.monotonic()
+        expired: List[str] = []
+        async with self.lock:
+            for session_id, session in list(self.sessions.items()):
+                if session.connections:
+                    continue
+                if now - session.last_active >= INACTIVITY_TIMEOUT:
+                    expired.append(session_id)
+                    session.ended = True
+                    self.sessions.pop(session_id, None)
+        return expired
+
     async def expire_inactive_sessions(self) -> None:
         while True:
             await asyncio.sleep(60)
-            now = time.monotonic()
-            expired: List[str] = []
-            async with self.lock:
-                for session_id, session in list(self.sessions.items()):
-                    if session.connections:
-                        continue
-                    if now - session.last_active >= INACTIVITY_TIMEOUT:
-                        expired.append(session_id)
-                        session.ended = True
-                        self.sessions.pop(session_id, None)
-            for session_id in expired:
-                # no clients to notify
-                continue
+            await self.expire_stale_once()
 
 
 async def get_store() -> SessionStore:

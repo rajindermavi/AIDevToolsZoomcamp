@@ -61,3 +61,49 @@ Build an initial baseline version of a collaborative coding interview web app.
 * Basic project structure.
 * Clear separation of frontend and backend.
 * Instructions for running the app locally.
+
+## Test Creation Prompt
+
+**General Testing Scope**
+
+* Focus on validating core functionality.
+* This is a v0 prototype; do not aim for exhaustive coverage.
+* Avoid end-to-end browser tests.
+* Mock external dependencies where appropriate.
+
+**Backend Tests**
+
+* Use pytest for backend testing.
+* Tests may include unit tests and light integration tests using FastAPI’s test client.
+* Backend behaviors to test:
+    - Session creation returns a valid session ID.
+    - Joining an existing session succeeds.
+    - Ending or expiring a session removes it from in-memory storage.
+* Code execution:
+    - Python code executes and returns stdout.
+    - JavaScript code executes and returns stdout.
+    - Errors during execution are captured and returned.
+* Backend testing constraints:
+    - Do not test WebSocket concurrency behavior.
+    - Do not test performance or security hardening.
+
+**Frontend Tests**
+
+* Use Jest and React Testing Library.
+* Focus on component rendering and user interactions.
+* Frontend behaviors to test:
+    - The app renders without errors.
+    - Clicking “Start Session” initiates a session.
+    - The code editor component renders.
+    - Changing the language dropdown updates application state.
+    - Clicking “Run Code” triggers a request to execute code.
+    - The output panel displays execution results.
+* Frontend testing constraints:
+    - Do not test real-time multi-user behavior.
+    - Do not test WebSocket internals.
+    - Do not perform full end-to-end browser testing.
+
+**Deliverables**
+    - Backend test files with clear organization.
+    - Frontend test files colocated with components or in a test directory.
+    - Instructions for running tests locally - written to README.md
